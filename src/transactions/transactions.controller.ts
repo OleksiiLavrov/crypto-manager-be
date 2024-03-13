@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 
-import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { TransactionDto } from './dto/transaction.dto';
 
 import { TransactionsService } from './transactions.service';
 
@@ -9,8 +9,16 @@ export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @Post()
-  create(@Body() createTransactionDto: CreateTransactionDto) {
-    return this.transactionsService.create(createTransactionDto);
+  create(@Body() createTransactionDto: TransactionDto) {
+    return this.transactionsService.add(createTransactionDto);
+  }
+
+  @Put(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateTransactionDto: TransactionDto,
+  ) {
+    return this.transactionsService.update(id, updateTransactionDto);
   }
 
   @Get()
@@ -21,10 +29,5 @@ export class TransactionsController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.transactionsService.findOne(+id);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.transactionsService.remove(+id);
   }
 }
