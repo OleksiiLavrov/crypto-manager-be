@@ -1,16 +1,17 @@
 import { Module } from '@nestjs/common';
-import { SequelizeModule } from '@nestjs/sequelize';
+import { MongooseModule } from '@nestjs/mongoose';
 
-import { Coin } from 'src/coins/coins.model';
-
-import { CoinTransactions } from './coin-transactions.model';
 import { TransactionsController } from './transactions.controller';
-import { Transaction } from './transactions.model';
+import { Transaction, TransactionSchema } from './transactions.schema';
 import { TransactionsService } from './transactions.service';
 
 @Module({
+  imports: [
+    MongooseModule.forFeature([
+      { name: Transaction.name, schema: TransactionSchema },
+    ]),
+  ],
   controllers: [TransactionsController],
   providers: [TransactionsService],
-  imports: [SequelizeModule.forFeature([Transaction, Coin, CoinTransactions])],
 })
 export class TransactionsModule {}
