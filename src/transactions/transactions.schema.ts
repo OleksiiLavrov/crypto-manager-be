@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-import mongoose, { HydratedDocument } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
 export type TransactionDocument = HydratedDocument<Transaction>;
 
@@ -12,8 +12,8 @@ export class Transaction {
   @Prop({ required: true })
   total_cost: number;
 
-  //   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Coin', required: true })
-  //   coin : Coin;
+  @Prop({ required: true })
+  coin_name: string;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);

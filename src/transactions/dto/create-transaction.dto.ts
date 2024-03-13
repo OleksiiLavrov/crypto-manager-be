@@ -2,6 +2,12 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateTransactionDto {
   @ApiProperty({
+    example: 'BTC',
+    description: 'Coin name',
+  })
+  readonly coin_name: string;
+
+  @ApiProperty({
     example: 100,
     description: 'Amount of coins',
   })
