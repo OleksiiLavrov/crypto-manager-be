@@ -14,7 +14,7 @@ export class CoinsService {
     private readonly coinsModel: Model<Coin>,
   ) {}
 
-  private async create(
+  private async createCoin(
     createCoinDto: AddCoinDto,
     session: ClientSession,
   ): Promise<Coin> {
@@ -34,7 +34,7 @@ export class CoinsService {
     }
   }
 
-  private async update(
+  private async updateCoin(
     createCoinDto: AddCoinDto,
     coin: CoinDocument,
     session: ClientSession,
@@ -61,9 +61,9 @@ export class CoinsService {
       .session(session);
 
     if (coin) {
-      return await this.update(addCoinDto, coin, session);
+      return await this.updateCoin(addCoinDto, coin, session);
     } else {
-      return await this.create(addCoinDto, session);
+      return await this.createCoin(addCoinDto, session);
     }
   }
 
