@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateTransactionDto {
+export class TransactionDto {
   @ApiProperty({
     example: 'BTC',
     description: 'Coin name',
