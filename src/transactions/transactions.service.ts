@@ -59,7 +59,7 @@ export class TransactionsService {
 
   public async add(createTransactionDto: TransactionDto): Promise<Transaction> {
     return dbTransaction<Transaction>(this.connection, async (session) => {
-      await this.coinsService.add(
+      const coin = await this.coinsService.add(
         {
           name: createTransactionDto.coin_name,
           add_amount: createTransactionDto.coin_amount,
@@ -67,7 +67,16 @@ export class TransactionsService {
         },
         session,
       );
-      return await this.createTransaction(createTransactionDto, session);
+      const transaction = await this.createTransaction(
+        createTransactionDto,
+        session,
+      );
+      await coin.updateOne({
+        $push: {
+          transactions: transaction._id,
+        },
+      });
+      return transaction;
     });
   }
 
