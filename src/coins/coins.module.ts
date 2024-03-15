@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { Coin, CoinSchema } from './coins.schema';
 import { CoinsService } from './coins.service';
+import { CoinsController } from './coins.controller';
 
 @Module({
   imports: [
@@ -13,5 +14,6 @@ import { CoinsService } from './coins.service';
     CoinsService,
     MongooseModule.forFeature([{ name: Coin.name, schema: CoinSchema }]),
   ],
+  controllers: [CoinsController],
 })
 export class CoinsModule {}

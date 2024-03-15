@@ -20,14 +20,4 @@ export class TransactionsController {
   ) {
     return this.transactionsService.update(id, updateTransactionDto);
   }
-
-  @Get()
-  findAll() {
-    return this.transactionsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.transactionsService.findOne(+id);
-  }
 }

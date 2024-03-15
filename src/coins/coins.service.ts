@@ -67,11 +67,11 @@ export class CoinsService {
     }
   }
 
-  async findOne(id: number) {
-    return `This action returns a #${id} transaction`;
+  public async findAll(): Promise<Coin[]> {
+    return await this.coinsModel.find();
   }
 
-  async remove(id: number) {
-    return `This action removes a #${id} transaction`;
+  public async findOneByName(name: string): Promise<Coin> {
+    return await this.coinsModel.findOne({ name });
   }
 }

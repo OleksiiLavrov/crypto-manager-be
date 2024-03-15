@@ -90,16 +90,4 @@ export class TransactionsService {
       );
     });
   }
-
-  async findAll() {
-    return `This action returns all transactions`;
-  }
-
-  async findOne(id: number) {
-    return `This action returns a #${id} transaction`;
-  }
-
-  async remove(id: number) {
-    return `This action removes a #${id} transaction`;
-  }
 }
