@@ -17,7 +17,7 @@ export class CoinsService {
   private async createCoin(
     createCoinDto: AddCoinDto,
     session: ClientSession,
-  ): Promise<Coin> {
+  ): Promise<CoinDocument> {
     const { name, add_amount, add_invested } = createCoinDto;
     try {
       const coin = new this.coinsModel({
@@ -25,6 +25,7 @@ export class CoinsService {
         total_amount: add_amount,
         name: name,
       });
+
       return await coin.save({ session });
     } catch (error) {
       throw new InternalServerErrorException({
@@ -38,7 +39,7 @@ export class CoinsService {
     createCoinDto: AddCoinDto,
     coin: CoinDocument,
     session: ClientSession,
-  ): Promise<Coin> {
+  ): Promise<CoinDocument> {
     const { add_amount, add_invested } = createCoinDto;
     try {
       coin.total_amount += add_amount;
@@ -55,7 +56,7 @@ export class CoinsService {
   public async add(
     addCoinDto: AddCoinDto,
     session: ClientSession,
-  ): Promise<Coin> {
+  ): Promise<CoinDocument> {
     const coin = await this.coinsModel
       .findOne({ name: addCoinDto.name })
       .session(session);
@@ -67,11 +68,11 @@ export class CoinsService {
     }
   }
 
-  public async findAll(): Promise<Coin[]> {
+  public async findAll(): Promise<CoinDocument[]> {
     return await this.coinsModel.find();
   }
 
-  public async findOneByName(name: string): Promise<Coin> {
+  public async findOneByName(name: string): Promise<CoinDocument> {
     return await this.coinsModel.findOne({ name });
   }
 }
