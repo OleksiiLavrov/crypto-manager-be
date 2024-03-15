@@ -7,12 +7,10 @@ import { TransactionsService } from './transactions.service';
 @Controller('transactions')
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
-
   @Post()
   create(@Body() createTransactionDto: TransactionDto) {
     return this.transactionsService.add(createTransactionDto);
   }
-
   @Put(':id')
   update(
     @Param('id') id: string,
