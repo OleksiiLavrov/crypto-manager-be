@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import { CoinsController } from './coins.controller';
 import { Coin, CoinSchema } from './coins.schema';
 import { CoinsService } from './coins.service';
-import { CoinsController } from './coins.controller';
 
 @Module({
   imports: [
