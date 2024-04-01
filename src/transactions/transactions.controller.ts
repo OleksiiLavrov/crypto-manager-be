@@ -1,4 +1,13 @@
-import { Body, Controller, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  Post,
+  Put,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 import { TransactionDto } from './dto/transaction.dto';
 
@@ -11,6 +20,12 @@ export class TransactionsController {
   @Post()
   create(@Body() createTransactionDto: TransactionDto) {
     return this.transactionsService.add(createTransactionDto);
+  }
+
+  @Post('/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  parse(@UploadedFile() file) {
+    return this.transactionsService.parse(file);
   }
 
   @Put(':id')

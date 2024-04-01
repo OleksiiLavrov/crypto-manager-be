@@ -6,6 +6,7 @@ import mongoose, { ClientSession, Model } from 'mongoose';
 
 import { CoinsService } from 'src/coins/coins.service';
 import { AddCoinDto } from 'src/coins/dto/add-coin.dto';
+import { parseExcelFile } from 'src/helpers/xlsxParser';
 import { dbTransaction } from 'src/util/db-transaction';
 
 import { TransactionDto } from './dto/transaction.dto';
@@ -97,6 +98,35 @@ export class TransactionsService {
         transaction,
         session,
       );
+    });
+  }
+
+  public async parse(file: any) {
+    const parsedTransactions = parseExcelFile(file);
+    return dbTransaction<Transaction[]>(this.connection, async (session) => {
+      const transactionsPromise = parsedTransactions.map(
+        async (transactionDto) => {
+          const coin = await this.coinsService.add(
+            {
+              name: transactionDto.coin_name,
+              add_amount: transactionDto.coin_amount,
+              add_invested: transactionDto.total_cost,
+            },
+            session,
+          );
+          const transaction = await this.createTransaction(
+            transactionDto,
+            session,
+          );
+          await coin.updateOne({
+            $push: {
+              transactions: transaction._id,
+            },
+          });
+          return transaction;
+        },
+      );
+      return Promise.all(transactionsPromise);
     });
   }
 }
