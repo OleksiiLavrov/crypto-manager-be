@@ -6,7 +6,7 @@ import mongoose, { ClientSession, Model } from 'mongoose';
 
 import { CoinsService } from 'src/coins/coins.service';
 import { AddCoinDto } from 'src/coins/dto/add-coin.dto';
-import { parseExcelFile } from 'src/helpers/xlsxParser';
+import { excelParser } from 'src/helpers/xlsxParser';
 import { dbTransaction } from 'src/util/db-transaction';
 
 import { TransactionDto } from './dto/transaction.dto';
@@ -102,7 +102,7 @@ export class TransactionsService {
   }
 
   public async parse(file: any) {
-    const parsedTransactions = parseExcelFile(file);
+    const parsedTransactions = excelParser.parseExcelFile(file);
     return dbTransaction<Transaction[]>(this.connection, async (session) => {
       const transactionsPromise = parsedTransactions.map(
         async (transactionDto) => {

@@ -3,9 +3,12 @@ import { InjectModel } from '@nestjs/mongoose';
 
 import { ClientSession, Model } from 'mongoose';
 
+import { marketData } from 'src/helpers/marketData';
+
 import { AddCoinDto } from './dto/add-coin.dto';
 
 import { Coin, CoinDocument } from './coins.schema';
+import { CoinModel } from './types';
 
 @Injectable()
 export class CoinsService {
@@ -68,11 +71,17 @@ export class CoinsService {
     }
   }
 
-  public async findAll(): Promise<CoinDocument[]> {
-    return await this.coinsModel.find();
+  public async findAll(): Promise<CoinModel[]> {
+    const coins = await this.coinsModel.find();
+    const coinsQuotes = await marketData.getSelectedQuotes(
+      coins.map((coin) => coin.name),
+    );
+    return coins.map((coin, index) => ({ coin, quote: coinsQuotes[index] }));
   }
 
-  public async findOneByName(name: string): Promise<CoinDocument> {
-    return await this.coinsModel.findOne({ name });
+  public async findOneByName(name: string): Promise<CoinModel> {
+    const coin = await this.coinsModel.findOne({ name });
+    const coinsQuotes = await marketData.getSelectedQuotes([name]);
+    return { coin, quote: coinsQuotes[0] };
   }
 }
