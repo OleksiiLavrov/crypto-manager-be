@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 async function start() {
   const PORT = process.env.PORT || 5000;
   const app = await NestFactory.create(AppModule, { cors: true });
+  console.log('MongoDB URI:', process.env.MONGODB_CONNECTION_URI);
 
   const config = new DocumentBuilder()
     .setTitle('Crypto Manager')
