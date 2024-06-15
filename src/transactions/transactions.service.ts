@@ -6,11 +6,11 @@ import mongoose, { ClientSession, Model } from 'mongoose';
 
 import { CoinsService } from 'src/coins/coins.service';
 import { AddCoinDto } from 'src/coins/dto/add-coin.dto';
-import { excelParser } from 'src/helpers/xlsxParser';
 import { dbTransaction } from 'src/util/db-transaction';
 
 import { TransactionDto } from './dto/transaction.dto';
 
+import { excelParser } from './helpers/xlsxParser';
 import { Transaction, TransactionDocument } from './transactions.schema';
 
 @Injectable()
@@ -34,6 +34,24 @@ export class TransactionsService {
     } catch (error) {
       throw new InternalServerErrorException({
         message: 'There was an error during creating the transaction',
+        error,
+      });
+    }
+  }
+
+  private async createManyTransactions(
+    createTransactionDtos: TransactionDto[],
+    session: ClientSession,
+  ) {
+    try {
+      const createdTransactions = await this.transactionsModel.insertMany(
+        createTransactionDtos,
+        { session },
+      );
+      return createdTransactions;
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: 'There was an error during creating transactions',
         error,
       });
     }
@@ -101,32 +119,37 @@ export class TransactionsService {
     });
   }
 
-  public async parse(file: any) {
-    const parsedTransactions = excelParser.parseExcelFile(file);
-    return dbTransaction<Transaction[]>(this.connection, async (session) => {
-      const transactionsPromise = parsedTransactions.map(
-        async (transactionDto) => {
-          const coin = await this.coinsService.add(
-            {
-              name: transactionDto.coin_name,
-              add_amount: transactionDto.coin_amount,
-              add_invested: transactionDto.total_cost,
-            },
-            session,
-          );
-          const transaction = await this.createTransaction(
-            transactionDto,
-            session,
-          );
-          await coin.updateOne({
-            $push: {
-              transactions: transaction._id,
-            },
-          });
-          return transaction;
-        },
-      );
-      return Promise.all(transactionsPromise);
-    });
+  public async parse(file: any): Promise<Transaction[][]> {
+    const transactionsPerCoin = excelParser.parseExcelFile(file);
+    const transactionsPromise = Object.keys(transactionsPerCoin).map(
+      async (coinName) => {
+        return dbTransaction<Transaction[]>(
+          this.connection,
+          async (session) => {
+            const { coin_amount, total_cost, transactions } =
+              transactionsPerCoin[coinName];
+            const coin = await this.coinsService.add(
+              {
+                name: coinName,
+                add_amount: coin_amount,
+                add_invested: total_cost,
+              },
+              session,
+            );
+            const createdTransactions = await this.createManyTransactions(
+              transactions,
+              session,
+            );
+            await coin.updateOne({
+              $push: {
+                transactions: { $each: createdTransactions.map((t) => t._id) },
+              },
+            });
+            return createdTransactions;
+          },
+        );
+      },
+    );
+    return Promise.all(transactionsPromise);
   }
 }

@@ -3,11 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 
 import { ClientSession, Model } from 'mongoose';
 
-import { marketData } from 'src/helpers/marketData';
-
 import { AddCoinDto } from './dto/add-coin.dto';
 
 import { Coin, CoinDocument } from './coins.schema';
+import { aggregateCoinsData } from './helpers/aggregateCoinsData';
 import { CoinModel } from './types';
 
 @Injectable()
@@ -73,15 +72,11 @@ export class CoinsService {
 
   public async findAll(): Promise<CoinModel[]> {
     const coins = await this.coinsModel.find();
-    const coinsQuotes = await marketData.getSelectedQuotes(
-      coins.map((coin) => coin.name),
-    );
-    return coins.map((coin, index) => ({ coin, quote: coinsQuotes[index] }));
+    return await aggregateCoinsData(coins);
   }
 
   public async findOneByName(name: string): Promise<CoinModel> {
     const coin = await this.coinsModel.findOne({ name });
-    const coinsQuotes = await marketData.getSelectedQuotes([name]);
-    return { coin, quote: coinsQuotes[0] };
+    return await aggregateCoinsData([coin])[0];
   }
 }
