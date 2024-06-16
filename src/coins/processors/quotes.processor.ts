@@ -24,11 +24,7 @@ export class QuotesProcessor {
             },
           )
           .pipe(
-            map((response) => {
-              console.log(response.data);
-
-              return response.data.data;
-            }),
+            map((response) => response.data.data),
             catchError((error) => {
               throw new InternalServerErrorException(
                 'Error fetching quotes from API',
