@@ -11,10 +11,7 @@ import { TransactionsModule } from './transactions/transactions.module';
       envFilePath: '.env',
       isGlobal: true,
     }),
-    MongooseModule.forRoot(
-      process.env.MONGODB_CONNECTION_URI ||
-        'mongodb+srv://lavovalexey:X6k68DRBTJXN6SpI@crypto-manager.medqd2e.mongodb.net/crypto_manager_dev',
-    ),
+    MongooseModule.forRoot(process.env.MONGODB_CONNECTION_URI),
     TransactionsModule,
     CoinsModule,
   ],
