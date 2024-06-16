@@ -8,10 +8,13 @@ import { TransactionsModule } from './transactions/transactions.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: `.env`,
+      envFilePath: `.${process.env.NODE_ENV}.env`,
       isGlobal: true,
     }),
-    MongooseModule.forRoot(process.env.MONGODB_CONNECTION_URI),
+    MongooseModule.forRoot(
+      process.env.MONGODB_CONNECTION_URI ||
+        'mongodb+srv://lavovalexey:X6k68DRBTJXN6SpI@crypto-manager.medqd2e.mongodb.net/crypto_manager_dev',
+    ),
     TransactionsModule,
     CoinsModule,
   ],
