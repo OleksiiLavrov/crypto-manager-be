@@ -8,7 +8,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: `.${process.env.NODE_ENV}.env`,
+      envFilePath: '.env',
       isGlobal: true,
     }),
     MongooseModule.forRoot(
