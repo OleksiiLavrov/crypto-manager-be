@@ -1,25 +1,37 @@
-import { InternalServerErrorException } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 
-import axios, { AxiosInstance } from 'axios';
+import { catchError, lastValueFrom, map } from 'rxjs';
 
 import { Coin } from '../coins.schema';
 import { CoinQuote } from '../types';
 
-class QuotesProcessor {
-  private axiosInstance: AxiosInstance;
-
-  constructor() {
-    this.axiosInstance = axios.create({
-      baseURL: 'https://pro-api.coinmarketcap.com',
-      headers: { 'X-CMC_PRO_API_KEY': 'b9eba22b-eb9b-472e-abdf-93d80686a497' },
-    });
-  }
+@Injectable()
+export class QuotesProcessor {
+  constructor(private readonly httpService: HttpService) {}
 
   public async getSelectedQuotes(coins: Coin[]): Promise<CoinQuote[]> {
     const coinSlugs = coins.map((c) => c.name);
     try {
-      const { data: coinsQuotes } = await this.axiosInstance.get(
-        `/v1/cryptocurrency/quotes/latest?symbol=${coinSlugs.join()}`,
+      const coinsQuotes = await lastValueFrom(
+        this.httpService
+          .get(
+            `${process.env.MARKET_QUOTES_URI}/v1/cryptocurrency/quotes/latest?symbol=${coinSlugs.join()}`,
+            {
+              headers: {
+                'X-CMC_PRO_API_KEY': process.env.MARKET_QUOTES_API_KEY,
+              },
+            },
+          )
+          .pipe(
+            map((response) => response.data),
+            catchError((error) => {
+              throw new InternalServerErrorException(
+                'Error fetching quotes from API',
+                error.message,
+              );
+            }),
+          ),
       );
 
       return coinSlugs.map((coinSlug): CoinQuote => {
@@ -41,5 +53,3 @@ class QuotesProcessor {
     }
   }
 }
-
-export default new QuotesProcessor();
