@@ -5,6 +5,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { FilesController } from './files.controller';
 import { FilesService } from './files.service';
+import { FileCreatedListener } from './listeners/file-created.listener';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { FilesService } from './files.service';
   controllers: [FilesController],
   providers: [
     FilesService,
+    FileCreatedListener,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

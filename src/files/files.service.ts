@@ -25,7 +25,8 @@ export class FilesService {
       forcePathStyle: true,
     });
   }
-  async upload(file: Express.Multer.File) {
+
+  async uploadCreatedFile(file: Express.Multer.File) {
     try {
       const key = `${file.originalname}-${uuid()}`;
       await this.client.send(

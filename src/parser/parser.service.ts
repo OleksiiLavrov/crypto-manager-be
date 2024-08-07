@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
-import { read, utils, writeFile } from 'xlsx';
+import { Readable } from 'stream';
+import { read, utils, write } from 'xlsx';
 
+import { FileCreatedEvent } from 'src/files/events/file-created.event';
 import { TransactionDto } from 'src/transactions/dto/transaction.dto';
 
 type TransactionData = {
@@ -16,6 +19,8 @@ type TransactionsPerCoin = {
 
 @Injectable()
 export class ParserService {
+  constructor(private eventEmitter: EventEmitter2) {}
+
   private readXlsxFile(file: Express.Multer.File) {
     const workbook = read(file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
@@ -27,7 +32,23 @@ export class ParserService {
     const workbook = utils.book_new();
     const worksheet = utils.json_to_sheet(data);
     utils.book_append_sheet(workbook, worksheet, 'sheet1');
-    writeFile(workbook, `./src/assets/${fileName}.xlsx`);
+    const fileBuffer = write(workbook, { bookType: 'xlsx', type: 'buffer' });
+
+    const file: Express.Multer.File = {
+      fieldname: 'file',
+      originalname: fileName,
+      encoding: '7bit',
+      mimetype:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      size: fileBuffer.length,
+      buffer: fileBuffer,
+      destination: '',
+      filename: '',
+      path: '',
+      stream: Readable.from(fileBuffer),
+    };
+
+    this.eventEmitter.emit('file.created', new FileCreatedEvent(file));
   }
 
   private aggregateTransactions(transactions: TransactionDto[]) {

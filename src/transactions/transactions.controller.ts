@@ -27,7 +27,7 @@ export class TransactionsController {
 
   @Post('/upload')
   @UseInterceptors(FileInterceptor('file'))
-  parse(
+  upload(
     @UploadedFile(
       new ParseFilePipe({
         validators: [
