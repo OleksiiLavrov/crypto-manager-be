@@ -119,8 +119,11 @@ export class TransactionsService {
     });
   }
 
-  public async parse(file: any): Promise<Transaction[][]> {
-    const transactionsPerCoin = excelParser.parseExcelFile(file);
+  public async parse(file: any, type?: 'raw'): Promise<Transaction[][]> {
+    const transactionsPerCoin =
+      type && type === 'raw'
+        ? excelParser.parseXlsxTable(file)
+        : excelParser.parseXlsxTransactionsData(file);
     const transactionsPromise = Object.keys(transactionsPerCoin).map(
       async (coinName) => {
         return dbTransaction<Transaction[]>(

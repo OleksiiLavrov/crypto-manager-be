@@ -24,11 +24,7 @@ export class QuotesProcessor {
             },
           )
           .pipe(
-            map((response) => {
-              console.log(response.data);
-
-              return response.data.data;
-            }),
+            map((response) => response.data.data),
             catchError((error) => {
               throw new InternalServerErrorException(
                 'Error fetching quotes from API',
@@ -43,7 +39,7 @@ export class QuotesProcessor {
           const { market_cap, price } = coinsQuotes[coinSlug].quote.USD;
           return { market_cap, price };
         } else {
-          throw new Error(`No USD quote for ${coinSlug}`);
+          return { market_cap: 0, price: 0 };
         }
       });
     } catch (error) {
