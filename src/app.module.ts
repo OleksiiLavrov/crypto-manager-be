@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { CoinsModule } from './coins/coins.module';
+import { FilesModule } from './files/files.module';
+import { ParserModule } from './parser/parser.module';
 import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
@@ -14,6 +16,8 @@ import { TransactionsModule } from './transactions/transactions.module';
     MongooseModule.forRoot(process.env.MONGODB_CONNECTION_URI),
     TransactionsModule,
     CoinsModule,
+    FilesModule,
+    ParserModule,
   ],
   controllers: [],
   providers: [],

@@ -1,3 +1,5 @@
+import { Injectable } from '@nestjs/common';
+
 import { read, utils, writeFile } from 'xlsx';
 
 import { TransactionDto } from 'src/transactions/dto/transaction.dto';
@@ -12,8 +14,9 @@ type TransactionsPerCoin = {
   [coin_name: string]: TransactionData;
 };
 
-class ExcelParser {
-  private readXlsxFile(file: any) {
+@Injectable()
+export class ParserService {
+  private readXlsxFile(file: Express.Multer.File) {
     const workbook = read(file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
@@ -24,7 +27,7 @@ class ExcelParser {
     const workbook = utils.book_new();
     const worksheet = utils.json_to_sheet(data);
     utils.book_append_sheet(workbook, worksheet, 'sheet1');
-    writeFile(workbook, `${fileName}.xlsx`);
+    writeFile(workbook, `./src/assets/${fileName}.xlsx`);
   }
 
   private aggregateTransactions(transactions: TransactionDto[]) {
@@ -44,12 +47,15 @@ class ExcelParser {
     }, {} as TransactionsPerCoin);
   }
 
-  public parseXlsxTransactionsData(file: any): TransactionsPerCoin {
+  // not used for now
+  public parseXlsxTransactionsData(
+    file: Express.Multer.File,
+  ): TransactionsPerCoin {
     const data = this.readXlsxFile(file) as TransactionDto[];
     return this.aggregateTransactions(data);
   }
 
-  public parseXlsxTable(file: any) {
+  public parseXlsxTable(file: Express.Multer.File) {
     const data = this.readXlsxFile(file);
     const slicedData = data.slice(1, data.length - 7);
 
@@ -75,10 +81,8 @@ class ExcelParser {
       return result;
     });
 
-    this.writeXlsxFile(transactionsPerCoin.flat(1), 'transactions_dev');
+    this.writeXlsxFile(transactionsPerCoin.flat(1), 'transactions_report');
 
     return this.aggregateTransactions(transactionsPerCoin.flat(1));
   }
 }
-
-export const excelParser = new ExcelParser();
