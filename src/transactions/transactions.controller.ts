@@ -28,6 +28,12 @@ export class TransactionsController {
     return this.transactionsService.parse(file);
   }
 
+  @Post('/upload-raw')
+  @UseInterceptors(FileInterceptor('file'))
+  test(@UploadedFile() file) {
+    return this.transactionsService.parse(file, 'raw');
+  }
+
   @Put(':id')
   update(
     @Param('id') id: string,

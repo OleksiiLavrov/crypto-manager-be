@@ -39,7 +39,7 @@ export class QuotesProcessor {
           const { market_cap, price } = coinsQuotes[coinSlug].quote.USD;
           return { market_cap, price };
         } else {
-          throw new Error(`No USD quote for ${coinSlug}`);
+          return { market_cap: 0, price: 0 };
         }
       });
     } catch (error) {

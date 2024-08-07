@@ -23,9 +23,9 @@ export class CoinsService {
     const coinQuotes = await this.quotesProcessor.getSelectedQuotes(coins);
     return coins.map((coin, index): CoinModel => {
       const { total_amount, total_invested } = coin;
-      const pnl =
-        (total_amount * coinQuotes[index].price * 100) / total_invested - 100;
       const totalValue = total_amount * coinQuotes[index].price;
+      const pnl =
+        ((totalValue - total_invested) / Math.abs(total_invested)) * 100;
       const avg = total_invested / total_amount;
       // TODO: fix this by using sql db and normal types
       return {
