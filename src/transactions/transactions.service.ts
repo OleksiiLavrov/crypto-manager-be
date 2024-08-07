@@ -6,11 +6,11 @@ import mongoose, { ClientSession, Model } from 'mongoose';
 
 import { CoinsService } from 'src/coins/coins.service';
 import { AddCoinDto } from 'src/coins/dto/add-coin.dto';
+import { ParserService } from 'src/parser/parser.service';
 import { dbTransaction } from 'src/util/db-transaction';
 
 import { TransactionDto } from './dto/transaction.dto';
 
-import { excelParser } from './helpers/xlsxParser';
 import { Transaction, TransactionDocument } from './transactions.schema';
 
 @Injectable()
@@ -20,6 +20,7 @@ export class TransactionsService {
     private readonly transactionsModel: Model<Transaction>,
     @InjectConnection() private readonly connection: mongoose.Connection,
     private readonly coinsService: CoinsService,
+    private readonly parserService: ParserService,
   ) {}
 
   private async createTransaction(
@@ -119,11 +120,8 @@ export class TransactionsService {
     });
   }
 
-  public async parse(file: any, type?: 'raw'): Promise<Transaction[][]> {
-    const transactionsPerCoin =
-      type && type === 'raw'
-        ? excelParser.parseXlsxTable(file)
-        : excelParser.parseXlsxTransactionsData(file);
+  public async parse(file: Express.Multer.File): Promise<Transaction[][]> {
+    const transactionsPerCoin = this.parserService.parseXlsxTable(file);
     const transactionsPromise = Object.keys(transactionsPerCoin).map(
       async (coinName) => {
         return dbTransaction<Transaction[]>(
