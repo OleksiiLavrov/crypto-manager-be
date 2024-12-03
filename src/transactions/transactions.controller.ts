@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   FileTypeValidator,
+  Get,
   Param,
   ParseFilePipe,
   Post,
@@ -49,5 +50,10 @@ export class TransactionsController {
     @Body() updateTransactionDto: TransactionDto,
   ): Promise<Transaction> {
     return this.transactionsService.update(id, updateTransactionDto);
+  }
+
+  @Get('/:coinName')
+  getTransactionsPerCoin(@Param('coinName') coinName: string) {
+    return this.transactionsService.getTransactionsPerCoin(coinName);
   }
 }

@@ -1,3 +1,5 @@
+import { ObjectId } from 'mongoose';
+
 import { CoinDocument } from '../coins.schema';
 
 type ComputedCoinData = {
@@ -12,3 +14,7 @@ export type CoinQuote = {
 };
 
 export type CoinModel = CoinDocument | CoinQuote | ComputedCoinData;
+
+export type CoinModelWithTransactions = CoinModel & {
+  transactions: ObjectId[];
+};

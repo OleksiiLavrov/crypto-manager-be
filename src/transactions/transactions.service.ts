@@ -153,4 +153,23 @@ export class TransactionsService {
     );
     return Promise.all(transactionsPromise);
   }
+
+  public async getTransactionsPerCoin(
+    coinName: string,
+  ): Promise<Transaction[]> {
+    try {
+      const coin =
+        await this.coinsService.findOneByNameWithTransactions(coinName);
+      if (!coin) return [];
+      const transactions = await this.transactionsModel.find({
+        _id: { $in: coin.transactions },
+      });
+      return transactions;
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: 'There was an error fetching transactions for the coin',
+        error,
+      });
+    }
+  }
 }

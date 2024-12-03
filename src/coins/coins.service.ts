@@ -7,7 +7,7 @@ import { AddCoinDto } from './dto/add-coin.dto';
 
 import { Coin, CoinDocument } from './coins.schema';
 import { QuotesProcessor } from './processors/quotes.processor';
-import { CoinModel } from './types';
+import { CoinModel, CoinModelWithTransactions } from './types';
 
 @Injectable()
 export class CoinsService {
@@ -27,7 +27,6 @@ export class CoinsService {
       const pnl =
         ((totalValue - total_invested) / Math.abs(total_invested)) * 100;
       const avg = total_invested / total_amount;
-      // TODO: fix this by using sql db and normal types
       return {
         ...coin['_doc'],
         ...coinQuotes[index],
@@ -93,12 +92,39 @@ export class CoinsService {
   }
 
   public async findAll(): Promise<CoinModel[]> {
-    const coins = await this.coinsModel.find();
-    return await this.aggregateCoinsData(coins);
+    try {
+      const coins = await this.coinsModel.find();
+      return await this.aggregateCoinsData(coins);
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: 'There was an error during finding all coins',
+        error,
+      });
+    }
   }
 
   public async findOneByName(name: string): Promise<CoinModel> {
-    const coin = await this.coinsModel.findOne({ name });
-    return await this.aggregateCoinsData([coin])[0];
+    try {
+      const coin = await this.coinsModel.findOne({ name });
+      return await this.aggregateCoinsData([coin])[0];
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: 'There was an error during finding coin by name',
+        error,
+      });
+    }
+  }
+
+  public async findOneByNameWithTransactions(
+    name: string,
+  ): Promise<CoinModelWithTransactions> {
+    try {
+      return await this.coinsModel.findOne({ name }).populate('transactions');
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: 'There was an error during finding coin by name',
+        error,
+      });
+    }
   }
 }
