@@ -1,20 +1,21 @@
-import { ClientSession, Connection } from 'mongoose';
+import { DataSource, QueryRunner } from 'typeorm';
 
 export const dbTransaction = async <T>(
-  connection: Connection,
-  cb: (session: ClientSession) => Promise<T>,
+  dataSource: DataSource,
+  cb: (queryRunner: QueryRunner) => Promise<T>,
 ): Promise<T> => {
-  const session = await connection.startSession();
+  const queryRunner = dataSource.createQueryRunner();
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
 
   try {
-    session.startTransaction();
-    const result = await cb(session);
-    await session.commitTransaction();
+    const result = await cb(queryRunner);
+    await queryRunner.commitTransaction();
     return result;
   } catch (err) {
-    await session.abortTransaction();
+    await queryRunner.rollbackTransaction();
     throw err;
   } finally {
-    await session.endSession();
+    await queryRunner.release();
   }
 };

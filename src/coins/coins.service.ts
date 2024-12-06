@@ -1,55 +1,52 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
 
-import { ClientSession, Model } from 'mongoose';
+import { Repository } from 'typeorm';
 
-import { AddCoinDto } from './dto/add-coin.dto';
+import { CoinDto, ComputedCoinDto } from './dto/coin.dto';
+import { CreateCoinDto } from './dto/create-coin.dto';
+import { UpdateCoinDto } from './dto/update-coin.dto';
 
-import { Coin, CoinDocument } from './coins.schema';
+import { Coin } from './entity/coin.entity';
 import { QuotesProcessor } from './processors/quotes.processor';
-import { CoinModel, CoinModelWithTransactions } from './types';
 
 @Injectable()
 export class CoinsService {
   constructor(
-    @InjectModel(Coin.name)
-    private readonly coinsModel: Model<Coin>,
+    @InjectRepository(Coin)
+    private readonly coinsRepository: Repository<Coin>,
     private readonly quotesProcessor: QuotesProcessor,
   ) {}
 
   private async aggregateCoinsData(
-    coins: CoinDocument[],
-  ): Promise<CoinModel[]> {
+    coins: CoinDto[],
+  ): Promise<ComputedCoinDto[]> {
     const coinQuotes = await this.quotesProcessor.getSelectedQuotes(coins);
-    return coins.map((coin, index): CoinModel => {
-      const { total_amount, total_invested } = coin;
-      const totalValue = total_amount * coinQuotes[index].price;
+    return coins.map((coin, index): ComputedCoinDto => {
+      const { totalAmount, totalInvested } = coin;
+      const totalValue = totalAmount * coinQuotes[index].price;
       const pnl =
-        ((totalValue - total_invested) / Math.abs(total_invested)) * 100;
-      const avg = total_invested / total_amount;
+        ((totalValue - totalInvested) / Math.abs(totalInvested)) * 100;
+      const avg = totalInvested / totalAmount;
       return {
-        ...coin['_doc'],
-        ...coinQuotes[index],
-        total_value: totalValue,
+        ...coin,
+        totalValue,
         pnl,
         avg,
       };
     });
   }
 
-  private async createCoin(
-    createCoinDto: AddCoinDto,
-    session: ClientSession,
-  ): Promise<CoinDocument> {
-    const { name, add_amount, add_invested } = createCoinDto;
+  public async createCoin(createCoinDto: CreateCoinDto): Promise<CoinDto> {
+    const { name, addAmount, addInvested } = createCoinDto;
     try {
-      const coin = new this.coinsModel({
-        total_invested: add_invested,
-        total_amount: add_amount,
+      const coin = this.coinsRepository.create({
+        totalInvested: addInvested,
+        totalAmount: addAmount,
         name: name,
       });
 
-      return await coin.save({ session });
+      return await this.coinsRepository.save(coin);
     } catch (error) {
       throw new InternalServerErrorException({
         message: 'There was an error during creating the coin',
@@ -58,16 +55,15 @@ export class CoinsService {
     }
   }
 
-  private async updateCoin(
-    createCoinDto: AddCoinDto,
-    coin: CoinDocument,
-    session: ClientSession,
-  ): Promise<CoinDocument> {
-    const { add_amount, add_invested } = createCoinDto;
+  public async updateCoin(
+    updateCoinDto: UpdateCoinDto,
+    coin: CoinDto,
+  ): Promise<CoinDto> {
+    const { addAmount, addInvested } = updateCoinDto;
     try {
-      coin.total_amount += add_amount;
-      coin.total_invested += add_invested;
-      return await coin.save({ session });
+      coin.totalAmount += addAmount;
+      coin.totalInvested += addInvested;
+      return await this.coinsRepository.save(coin);
     } catch (error) {
       throw new InternalServerErrorException({
         message: 'There was an error during updating the coin',
@@ -76,24 +72,9 @@ export class CoinsService {
     }
   }
 
-  public async add(
-    addCoinDto: AddCoinDto,
-    session: ClientSession,
-  ): Promise<CoinDocument> {
-    const coin = await this.coinsModel
-      .findOne({ name: addCoinDto.name })
-      .session(session);
-
-    if (coin) {
-      return await this.updateCoin(addCoinDto, coin, session);
-    } else {
-      return await this.createCoin(addCoinDto, session);
-    }
-  }
-
-  public async findAll(): Promise<CoinModel[]> {
+  public async findAll(): Promise<ComputedCoinDto[]> {
     try {
-      const coins = await this.coinsModel.find();
+      const coins = await this.coinsRepository.find();
       return await this.aggregateCoinsData(coins);
     } catch (error) {
       throw new InternalServerErrorException({
@@ -103,10 +84,10 @@ export class CoinsService {
     }
   }
 
-  public async findOneByName(name: string): Promise<CoinModel> {
+  public async findOneByName(name: string): Promise<CoinDto> {
     try {
-      const coin = await this.coinsModel.findOne({ name });
-      return await this.aggregateCoinsData([coin])[0];
+      const coin = await this.coinsRepository.findOne({ where: { name } });
+      return coin;
     } catch (error) {
       throw new InternalServerErrorException({
         message: 'There was an error during finding coin by name',
@@ -115,11 +96,14 @@ export class CoinsService {
     }
   }
 
-  public async findOneByNameWithTransactions(
-    name: string,
-  ): Promise<CoinModelWithTransactions> {
+  public async findOneByNameWithTransactions(name: string): Promise<CoinDto> {
     try {
-      return await this.coinsModel.findOne({ name }).populate('transactions');
+      const coin = await this.coinsRepository
+        .createQueryBuilder('coin')
+        .leftJoinAndSelect('coin.transactions', 'transactions')
+        .where('coin.name = :name', { name })
+        .getOne();
+      return coin;
     } catch (error) {
       throw new InternalServerErrorException({
         message: 'There was an error during finding coin by name',

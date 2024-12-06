@@ -1,37 +1,37 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { InjectConnection } from '@nestjs/mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
 
-import mongoose, { ClientSession, Model } from 'mongoose';
+import { Repository } from 'typeorm';
 
 import { CoinsService } from 'src/coins/coins.service';
-import { AddCoinDto } from 'src/coins/dto/add-coin.dto';
+import { UpdateCoinDto } from 'src/coins/dto/update-coin.dto';
 import { ParserService } from 'src/parser/parser.service';
-import { dbTransaction } from 'src/util/db-transaction';
 
+import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { TransactionDto } from './dto/transaction.dto';
+import { UpdateTransactionDto } from './dto/update-transaction.dto';
 
-import { Transaction, TransactionDocument } from './transactions.schema';
+import { Transaction } from './entity/transaction.entity';
 
 @Injectable()
 export class TransactionsService {
   constructor(
-    @InjectModel(Transaction.name)
-    private readonly transactionsModel: Model<Transaction>,
-    @InjectConnection() private readonly connection: mongoose.Connection,
+    @InjectRepository(Transaction)
+    private readonly transactionsRepository: Repository<Transaction>,
     private readonly coinsService: CoinsService,
     private readonly parserService: ParserService,
   ) {}
 
   private async createTransaction(
-    createTransactionDto: TransactionDto,
-    session: ClientSession,
+    coinId: number,
+    createTransactionDto: CreateTransactionDto,
   ) {
     try {
-      const createdTransaction = new this.transactionsModel(
-        createTransactionDto,
-      );
-      return createdTransaction.save({ session });
+      const transaction = this.transactionsRepository.create({
+        coinId: coinId,
+        ...createTransactionDto,
+      });
+      return await this.transactionsRepository.save(transaction);
     } catch (error) {
       throw new InternalServerErrorException({
         message: 'There was an error during creating the transaction',
@@ -41,15 +41,17 @@ export class TransactionsService {
   }
 
   private async createManyTransactions(
-    createTransactionDtos: TransactionDto[],
-    session: ClientSession,
+    coinId: number,
+    createTransactionDtos: CreateTransactionDto[],
   ) {
     try {
-      const createdTransactions = await this.transactionsModel.insertMany(
-        createTransactionDtos,
-        { session },
+      const transactions = this.transactionsRepository.create(
+        createTransactionDtos.map((dto) => ({
+          coinId: coinId,
+          ...dto,
+        })),
       );
-      return createdTransactions;
+      return await this.transactionsRepository.save(transactions);
     } catch (error) {
       throw new InternalServerErrorException({
         message: 'There was an error during creating transactions',
@@ -59,16 +61,14 @@ export class TransactionsService {
   }
 
   private async updateTransaction(
-    updateTransactionDto: TransactionDto,
-    transaction: TransactionDocument,
-    session: ClientSession,
+    updateTransactionDto: UpdateTransactionDto,
+    transaction: Transaction,
   ) {
-    const { coin_name, coin_amount, total_cost } = updateTransactionDto;
+    const { coinAmount, totalCost } = updateTransactionDto;
     try {
-      transaction.coin_amount = coin_amount;
-      transaction.coin_name = coin_name;
-      transaction.total_cost = total_cost;
-      return await transaction.save({ session });
+      transaction.coinAmount = coinAmount;
+      transaction.totalCost = totalCost;
+      return await this.transactionsRepository.save(transaction);
     } catch (error) {
       throw new InternalServerErrorException({
         message: 'There was an error during updating the transaction',
@@ -77,99 +77,126 @@ export class TransactionsService {
     }
   }
 
-  public async add(createTransactionDto: TransactionDto): Promise<Transaction> {
-    return dbTransaction<Transaction>(this.connection, async (session) => {
-      const coin = await this.coinsService.add(
-        {
-          name: createTransactionDto.coin_name,
-          add_amount: createTransactionDto.coin_amount,
-          add_invested: createTransactionDto.total_cost,
-        },
-        session,
-      );
+  public async create(
+    createTransactionDto: CreateTransactionDto,
+  ): Promise<TransactionDto> {
+    let coin = await this.coinsService.findOneByName(
+      createTransactionDto.coinName,
+    );
+
+    const queryRunner =
+      this.transactionsRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      if (!coin) {
+        coin = await this.coinsService.createCoin({
+          name: createTransactionDto.coinName,
+          addAmount: createTransactionDto.coinAmount,
+          addInvested: createTransactionDto.totalCost,
+        });
+      }
+
       const transaction = await this.createTransaction(
+        coin.id,
         createTransactionDto,
-        session,
       );
-      await coin.updateOne({
-        $push: {
-          transactions: transaction._id,
-        },
-      });
+
+      const updatedCoinDto: UpdateCoinDto = {
+        addAmount: createTransactionDto.coinAmount,
+        addInvested: createTransactionDto.totalCost,
+      };
+
+      await this.coinsService.updateCoin(updatedCoinDto, coin);
+
+      await queryRunner.commitTransaction();
       return transaction;
-    });
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   public async update(
-    id: string,
-    updateTransactionDto: TransactionDto,
-  ): Promise<Transaction> {
-    return dbTransaction<Transaction>(this.connection, async (session) => {
-      const transaction = await this.transactionsModel.findById(id);
-      const updatedCoinDto: AddCoinDto = {
-        name: updateTransactionDto.coin_name,
-        add_amount: -transaction.coin_amount + updateTransactionDto.coin_amount,
-        add_invested: -transaction.total_cost + updateTransactionDto.total_cost,
+    id: number,
+    updateTransactionDto: UpdateTransactionDto,
+  ): Promise<TransactionDto> {
+    const queryRunner =
+      this.transactionsRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    const coin = await this.coinsService.findOneByName(
+      updateTransactionDto.coinName,
+    );
+
+    try {
+      const transaction = await queryRunner.manager.findOne(Transaction, {
+        where: { id },
+      });
+
+      const updatedCoinDto: UpdateCoinDto = {
+        addAmount: -transaction.coinAmount + updateTransactionDto.coinAmount,
+        addInvested: -transaction.totalCost + updateTransactionDto.totalCost,
       };
-      await this.coinsService.add(updatedCoinDto, session);
-      return await this.updateTransaction(
+
+      await this.coinsService.updateCoin(updatedCoinDto, coin);
+      const result = await this.updateTransaction(
         updateTransactionDto,
         transaction,
-        session,
       );
-    });
-  }
 
-  public async parse(file: Express.Multer.File): Promise<Transaction[][]> {
-    const transactionsPerCoin = this.parserService.parseXlsxTable(file);
-    const transactionsPromise = Object.keys(transactionsPerCoin).map(
-      async (coinName) => {
-        return dbTransaction<Transaction[]>(
-          this.connection,
-          async (session) => {
-            const { coin_amount, total_cost, transactions } =
-              transactionsPerCoin[coinName];
-            const coin = await this.coinsService.add(
-              {
-                name: coinName,
-                add_amount: coin_amount,
-                add_invested: total_cost,
-              },
-              session,
-            );
-            const createdTransactions = await this.createManyTransactions(
-              transactions,
-              session,
-            );
-            await coin.updateOne({
-              $push: {
-                transactions: { $each: createdTransactions.map((t) => t._id) },
-              },
-            });
-            return createdTransactions;
-          },
-        );
-      },
-    );
-    return Promise.all(transactionsPromise);
-  }
-
-  public async getTransactionsPerCoin(
-    coinName: string,
-  ): Promise<Transaction[]> {
-    try {
-      const coin =
-        await this.coinsService.findOneByNameWithTransactions(coinName);
-      if (!coin) return [];
-      const transactions = await this.transactionsModel.find({
-        _id: { $in: coin.transactions },
-      });
-      return transactions;
+      await queryRunner.commitTransaction();
+      return result;
     } catch (error) {
-      throw new InternalServerErrorException({
-        message: 'There was an error fetching transactions for the coin',
-        error,
-      });
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
   }
+
+  // public async parse(file: Express.Multer.File): Promise<TransactionDto[][]> {
+  //   const transactionsPerCoin = this.parserService.parseXlsxTable(file);
+  //   const transactionsPromise = Object.keys(transactionsPerCoin).map(
+  //     async (coinName) => {
+  //       const queryRunner =
+  //         this.transactionsRepository.manager.connection.createQueryRunner();
+  //       await queryRunner.connect();
+  //       await queryRunner.startTransaction();
+
+  //       try {
+  //         const { coinAmount, totalCost, transactions } =
+  //           transactionsPerCoin[coinName];
+  //         const coin = await this.coinsService.add({
+  //           name: coinName,
+  //           addAmount: coinAmount,
+  //           addInvested: totalCost,
+  //         });
+
+  //         const createdTransactions =
+  //           await this.createManyTransactions(transactions);
+
+  //         // Update coin's transactions relation
+  //         coin.transactions = [
+  //           ...(coin.transactions || []),
+  //           ...createdTransactions,
+  //         ];
+  //         await queryRunner.manager.save(coin);
+
+  //         await queryRunner.commitTransaction();
+  //         return createdTransactions;
+  //       } catch (error) {
+  //         await queryRunner.rollbackTransaction();
+  //         throw error;
+  //       } finally {
+  //         await queryRunner.release();
+  //       }
+  //     },
+  //   );
+  //   return Promise.all(transactionsPromise);
+  // }
 }
