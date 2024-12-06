@@ -96,19 +96,19 @@ export class TransactionsService {
           addAmount: createTransactionDto.coinAmount,
           addInvested: createTransactionDto.totalCost,
         });
+      } else {
+        const updatedCoinDto: UpdateCoinDto = {
+          addAmount: createTransactionDto.coinAmount,
+          addInvested: createTransactionDto.totalCost,
+        };
+
+        await this.coinsService.updateCoin(updatedCoinDto, coin);
       }
 
       const transaction = await this.createTransaction(
         coin.id,
         createTransactionDto,
       );
-
-      const updatedCoinDto: UpdateCoinDto = {
-        addAmount: createTransactionDto.coinAmount,
-        addInvested: createTransactionDto.totalCost,
-      };
-
-      await this.coinsService.updateCoin(updatedCoinDto, coin);
 
       await queryRunner.commitTransaction();
       return transaction;
