@@ -30,4 +30,16 @@ export class TransactionDto {
     description: 'Total amount of money spended on buying this coin',
   })
   public totalCost: number;
+
+  @ApiProperty({
+    example: '2024-01-01',
+    description: 'Date of last update',
+  })
+  public updatedAt: Date;
+
+  @ApiProperty({
+    example: '2024-01-01',
+    description: 'Date of creation',
+  })
+  public createdAt: Date;
 }

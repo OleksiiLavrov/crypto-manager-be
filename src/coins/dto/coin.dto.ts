@@ -19,6 +19,18 @@ export class CoinDto {
   public totalInvested: number;
 
   @ApiProperty({
+    example: '2024-01-01',
+    description: 'Date of last update',
+  })
+  public updatedAt: Date;
+
+  @ApiProperty({
+    example: '2024-01-01',
+    description: 'Date of creation',
+  })
+  public createdAt: Date;
+
+  @ApiProperty({
     type: [TransactionDto],
     description: 'List of transactions for this coin',
   })

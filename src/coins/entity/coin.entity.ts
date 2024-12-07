@@ -16,6 +16,12 @@ export class Coin {
   @Column()
   name: string;
 
+  @Column({ default: () => 'CURRENT_TIMESTAMP' })
+  updatedAt: Date;
+
+  @Column({ default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
   @OneToMany(() => Transaction, (transaction) => transaction.coin)
   transactions: Transaction[];
 }

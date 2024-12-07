@@ -29,6 +29,7 @@ export class CoinsService {
         ((totalValue - totalInvested) / Math.abs(totalInvested)) * 100;
       const avg = totalInvested / totalAmount;
       return {
+        ...coinQuotes[index],
         ...coin,
         totalValue,
         pnl,
