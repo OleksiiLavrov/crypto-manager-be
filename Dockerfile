@@ -21,7 +21,7 @@ COPY .env ./
 RUN yarn build
 
 # Expose the port on which the app will run
-EXPOSE 8080
+EXPOSE 3000
 
 # Start the server using the production build
-CMD ["yarn", "start:dev"]
+CMD ["sh", "-c", "yarn migration:up && yarn start:prod"]

@@ -1,27 +1,30 @@
 version: '3.8'
 
 services:
-  # app:
-  #   build: .
-  #   ports:
-  #     - "8000:8000"
-  #   environment:
-  #     - POSTGRES_HOST=postgres
-  #     - POSTGRES_PORT=5555
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #     - POSTGRES_DATABASE=crypto_manager
-  #   depends_on:
-  #     - postgres
-  #   volumes:
-  #     - .:/usr/src/app
-  #     - /usr/src/app/node_modules
+  app:
+    container_name: crypto-manager-be
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DATABASE=crypto_manager
+    depends_on:
+      - postgres
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    entrypoint: ["sh", "-c", "until nc -z postgres 5432; do echo Waiting for Postgres...; sleep 2; done; yarn migration:up && yarn start:prod"]
 
   postgres:
     image: postgres:15
-    command: -p 5555
+    container_name: postgres
+    command: -p 5432
     ports:
-      - "5555:5555"
+      - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
