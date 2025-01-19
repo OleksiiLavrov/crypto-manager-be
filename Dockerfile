@@ -1,6 +1,8 @@
-
 # Base image
 FROM node:20
+
+# Install PostgreSQL client utilities
+RUN apt-get update && apt-get install -y postgresql-client
 
 # Create app directory
 WORKDIR /app

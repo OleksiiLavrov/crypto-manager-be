@@ -17,7 +17,7 @@ services:
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
-    entrypoint: ["sh", "-c", "until nc -z postgres 5432; do echo Waiting for Postgres...; sleep 2; done; yarn migration:up && yarn start:prod"]
+    entrypoint: ["sh", "-c", "until pg_isready -h postgres -p 5432 -U postgres; do echo Waiting for Postgres...; sleep 2; done; yarn migration:up && yarn start:prod"]
 
   postgres:
     image: postgres:15
