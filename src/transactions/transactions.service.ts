@@ -22,61 +22,6 @@ export class TransactionsService {
     private readonly parserService: ParserService,
   ) {}
 
-  private async createTransaction(
-    coinId: number,
-    createTransactionDto: CreateTransactionDto,
-  ) {
-    try {
-      const transaction = this.transactionsRepository.create({
-        coinId: coinId,
-        ...createTransactionDto,
-      });
-      return await this.transactionsRepository.save(transaction);
-    } catch (error) {
-      throw new InternalServerErrorException({
-        message: 'There was an error during creating the transaction',
-        error,
-      });
-    }
-  }
-
-  private async createManyTransactions(
-    coinId: number,
-    createTransactionDtos: CreateTransactionDto[],
-  ) {
-    try {
-      const transactions = this.transactionsRepository.create(
-        createTransactionDtos.map((dto) => ({
-          coinId: coinId,
-          ...dto,
-        })),
-      );
-      return await this.transactionsRepository.save(transactions);
-    } catch (error) {
-      throw new InternalServerErrorException({
-        message: 'There was an error during creating transactions',
-        error,
-      });
-    }
-  }
-
-  private async updateTransaction(
-    updateTransactionDto: UpdateTransactionDto,
-    transaction: Transaction,
-  ) {
-    const { coinAmount, totalCost } = updateTransactionDto;
-    try {
-      transaction.coinAmount = coinAmount;
-      transaction.totalCost = totalCost;
-      return await this.transactionsRepository.save(transaction);
-    } catch (error) {
-      throw new InternalServerErrorException({
-        message: 'There was an error during updating the transaction',
-        error,
-      });
-    }
-  }
-
   public async create(
     createTransactionDto: CreateTransactionDto,
   ): Promise<TransactionDto> {
@@ -156,6 +101,61 @@ export class TransactionsService {
       throw error;
     } finally {
       await queryRunner.release();
+    }
+  }
+
+  private async createTransaction(
+    coinId: number,
+    createTransactionDto: CreateTransactionDto,
+  ) {
+    try {
+      const transaction = this.transactionsRepository.create({
+        coinId: coinId,
+        ...createTransactionDto,
+      });
+      return await this.transactionsRepository.save(transaction);
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: 'There was an error during creating the transaction',
+        error,
+      });
+    }
+  }
+
+  private async createManyTransactions(
+    coinId: number,
+    createTransactionDtos: CreateTransactionDto[],
+  ) {
+    try {
+      const transactions = this.transactionsRepository.create(
+        createTransactionDtos.map((dto) => ({
+          coinId: coinId,
+          ...dto,
+        })),
+      );
+      return await this.transactionsRepository.save(transactions);
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: 'There was an error during creating transactions',
+        error,
+      });
+    }
+  }
+
+  private async updateTransaction(
+    updateTransactionDto: UpdateTransactionDto,
+    transaction: Transaction,
+  ) {
+    const { coinAmount, totalCost } = updateTransactionDto;
+    try {
+      transaction.coinAmount = coinAmount;
+      transaction.totalCost = totalCost;
+      return await this.transactionsRepository.save(transaction);
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: 'There was an error during updating the transaction',
+        error,
+      });
     }
   }
 

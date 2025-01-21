@@ -37,7 +37,7 @@ export class CoinDto {
   public transactions: TransactionDto[];
 }
 
-export class ComputedCoinDto extends CoinDto {
+export class CoinWithQuotesDto extends CoinDto {
   public totalValue: number;
   public avg: number;
   public pnl: number;
