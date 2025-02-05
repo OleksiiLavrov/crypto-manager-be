@@ -1,9 +1,11 @@
-
 # Base image
 FROM node:20
 
+# Install PostgreSQL client utilities
+RUN apt-get update && apt-get install -y postgresql-client
+
 # Create app directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package.json yarn.lock ./
@@ -21,7 +23,7 @@ COPY .env ./
 RUN yarn build
 
 # Expose the port on which the app will run
-EXPOSE 8080
+EXPOSE 3000
 
 # Start the server using the production build
-CMD ["yarn", "start:prod"]
+CMD ["sh", "-c", "yarn migration:up && yarn start:prod"]

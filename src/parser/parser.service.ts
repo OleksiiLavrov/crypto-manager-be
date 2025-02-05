@@ -8,13 +8,13 @@ import { FileCreatedEvent } from 'src/files/events/file-created.event';
 import { TransactionDto } from 'src/transactions/dto/transaction.dto';
 
 type TransactionData = {
-  coin_amount: number;
-  total_cost: number;
+  coinAmount: number;
+  totalCost: number;
   transactions: TransactionDto[];
 };
 
 type TransactionsPerCoin = {
-  [coin_name: string]: TransactionData;
+  [coinName: string]: TransactionData;
 };
 
 @Injectable()
@@ -53,15 +53,15 @@ export class ParserService {
 
   private aggregateTransactions(transactions: TransactionDto[]) {
     return transactions.reduce((acc, transaction) => {
-      if (acc[transaction.coin_name]) {
-        acc[transaction.coin_name].transactions.push(transaction);
-        acc[transaction.coin_name].coin_amount += transaction.coin_amount;
-        acc[transaction.coin_name].total_cost += transaction.total_cost;
+      if (acc[transaction.coinName]) {
+        acc[transaction.coinName].transactions.push(transaction);
+        acc[transaction.coinName].coinAmount += transaction.coinAmount;
+        acc[transaction.coinName].totalCost += transaction.totalCost;
       } else {
-        acc[transaction.coin_name] = {
+        acc[transaction.coinName] = {
           transactions: [transaction],
-          coin_amount: transaction.coin_amount,
-          total_cost: transaction.total_cost,
+          coinAmount: transaction.coinAmount,
+          totalCost: transaction.totalCost,
         };
       }
       return acc;
@@ -90,9 +90,9 @@ export class ParserService {
           const totalCostKey = keys[i + 2];
           if (row[coinAmountKey] !== 0 && row[totalCostKey] !== 0) {
             result.push({
-              coin_name: row['__EMPTY'],
-              coin_amount: row[coinAmountKey],
-              total_cost: row[totalCostKey],
+              coinName: row['__EMPTY'],
+              coinAmount: row[coinAmountKey],
+              totalCost: row[totalCostKey],
             });
           }
           i += 2;

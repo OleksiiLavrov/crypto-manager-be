@@ -1,22 +1,16 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CoinsController } from './coins.controller';
-import { Coin, CoinSchema } from './coins.schema';
 import { CoinsService } from './coins.service';
+import { Coin } from './entity/coin.entity';
 import { QuotesProcessor } from './processors/quotes.processor';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Coin.name, schema: CoinSchema }]),
-    HttpModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Coin]), HttpModule],
   providers: [CoinsService, QuotesProcessor],
-  exports: [
-    CoinsService,
-    MongooseModule.forFeature([{ name: Coin.name, schema: CoinSchema }]),
-  ],
+  exports: [CoinsService],
   controllers: [CoinsController],
 })
 export class CoinsModule {}

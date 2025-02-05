@@ -3,10 +3,11 @@ import { ConfigModule } from '@nestjs/config';
 import { ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CoinsModule } from './coins/coins.module';
+import { dataSourceOptions } from './config/data-source';
 import { FilesModule } from './files/files.module';
 import { ParserModule } from './parser/parser.module';
 import { TransactionsModule } from './transactions/transactions.module';
@@ -17,6 +18,7 @@ import { TransactionsModule } from './transactions/transactions.module';
       envFilePath: '.env',
       isGlobal: true,
     }),
+    TypeOrmModule.forRoot(dataSourceOptions),
     ThrottlerModule.forRootAsync({
       useFactory: (config: ConfigService) => [
         {
@@ -27,7 +29,6 @@ import { TransactionsModule } from './transactions/transactions.module';
       inject: [ConfigService],
     }),
     EventEmitterModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGODB_CONNECTION_URI),
     TransactionsModule,
     CoinsModule,
     FilesModule,

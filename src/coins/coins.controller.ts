@@ -15,4 +15,9 @@ export class CoinsController {
   findOneByName(@Param('name') name: string) {
     return this.coinsService.findOneByName(name);
   }
+
+  @Get('/:name/transactions')
+  findOneByNameWithTransactions(@Param('name') name: string) {
+    return this.coinsService.findOneByNameWithTransactions(name);
+  }
 }
