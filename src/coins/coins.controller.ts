@@ -1,5 +1,4 @@
 import { Controller, Get, Param } from '@nestjs/common';
-
 import { CoinsService } from './coins.service';
 
 @Controller('coins')
@@ -7,17 +6,22 @@ export class CoinsController {
   constructor(private readonly coinsService: CoinsService) {}
 
   @Get()
-  findAll() {
-    return this.coinsService.findAll();
+  findAll(@Param('userId') userId: string) {
+    return this.coinsService.findAllUserCoins(+userId);
   }
 
-  @Get(':name')
-  findOneByName(@Param('name') name: string) {
-    return this.coinsService.findOneByName(name);
+  @Get(':name/:userId')
+  findOneByName(@Param('name') name: string, @Param('userId') userId: string) {
+    return this.coinsService.findUserCoinByName(name, +userId);
   }
 
-  @Get('/:name/transactions')
-  findOneByNameWithTransactions(@Param('name') name: string) {
-    return this.coinsService.findOneByNameWithTransactions(name);
+  @Get('/:name/transactions/:userId')
+  findOneByNameWithTransactions(
+    @Param('name') name: string,
+    @Param('userId') userId: string,
+  ) {
+    return this.coinsService.findUserCoinByName(name, +userId, {
+      withTransactions: true,
+    });
   }
 }

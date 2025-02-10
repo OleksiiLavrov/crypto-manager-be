@@ -1,17 +1,16 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-import { Transaction } from 'src/transactions/entity/transaction.entity';
 
-@Entity()
+@Entity('coin')
 export class Coin {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('float8')
-  totalAmount: number;
+  @Column({ nullable: true })
+  price: number;
 
-  @Column('float8')
-  totalInvested: number;
+  @Column({ nullable: true })
+  marketCap: number;
 
   @Column()
   name: string;
@@ -21,7 +20,4 @@ export class Coin {
 
   @Column({ default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
-
-  @OneToMany(() => Transaction, (transaction) => transaction.coin)
-  transactions: Transaction[];
 }

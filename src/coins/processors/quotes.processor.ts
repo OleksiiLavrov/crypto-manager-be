@@ -1,23 +1,22 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-
 import { catchError, lastValueFrom, map } from 'rxjs';
-
-import { CoinDto, CoinQuoteDto } from '../dto/coin.dto';
+import { CoinDto } from '../dto/coin.dto';
 
 @Injectable()
 export class QuotesProcessor {
   constructor(private readonly httpService: HttpService) {}
 
-  public async getSelectedQuotes(coins: CoinDto[]): Promise<CoinQuoteDto[]> {
+  public async getSelectedQuotes(coins: CoinDto[]): Promise<CoinDto[]> {
     const coinSlugs = coins.map((c) => c.name);
     const coinsQuotes = await this.getCoinQuotesBySlugs(coinSlugs);
-    return coinSlugs.map((coinSlug): CoinQuoteDto => {
+    return coinSlugs.map((coinSlug): CoinDto => {
+      const coin = coins.find((c) => c.name === coinSlug);
       if (coinsQuotes[coinSlug] && coinsQuotes[coinSlug].quote.USD) {
         const { market_cap, price } = coinsQuotes[coinSlug].quote.USD;
-        return { marketCap: market_cap, price };
+        return { ...coin, marketCap: market_cap, price };
       } else {
-        return { marketCap: 0, price: 0 };
+        return { ...coin, marketCap: 0, price: 0 };
       }
     });
   }

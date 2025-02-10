@@ -1,12 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { OmitType } from '@nestjs/swagger';
+import { CoinDto } from './coin.dto';
 
-export class UpdateCoinDto {
-  @ApiProperty({ example: 10, description: 'Amount of these coins' })
-  public addAmount: number;
-
-  @ApiProperty({
-    example: 500,
-    description: 'Total amount of money spended on buying this coin',
-  })
-  public addInvested: number;
-}
+export class UpdateCoinDto extends OmitType(CoinDto, [
+  'createdAt',
+  'updatedAt',
+]) {}

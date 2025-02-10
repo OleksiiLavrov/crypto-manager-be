@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { CoinDto } from 'src/coins/dto/coin.dto';
 
 export class TransactionDto {
   @ApiProperty({
@@ -8,28 +9,28 @@ export class TransactionDto {
   public id: number;
 
   @ApiProperty({
-    example: 'BTC',
-    description: 'Coin name',
-  })
-  public coinName: string;
-
-  @ApiProperty({
     example: 1,
     description: 'Coin id',
   })
   public coinId: number;
 
   @ApiProperty({
+    example: 1,
+    description: 'User id',
+  })
+  public userId: number;
+
+  @ApiProperty({
     example: 100,
     description: 'Amount of coins',
   })
-  public coinAmount: number;
+  public amount: number;
 
   @ApiProperty({
     example: 1000,
     description: 'Total amount of money spended on buying this coin',
   })
-  public totalCost: number;
+  public cost: number;
 
   @ApiProperty({
     example: '2024-01-01',
@@ -42,4 +43,10 @@ export class TransactionDto {
     description: 'Date of creation',
   })
   public createdAt: Date;
+
+  @ApiProperty({
+    type: CoinDto,
+    description: 'Coin',
+  })
+  public coin?: CoinDto;
 }

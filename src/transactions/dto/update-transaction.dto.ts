@@ -1,5 +1,3 @@
-export class UpdateTransactionDto {
-  public coinAmount: number;
-  public totalCost: number;
-  public coinName: string;
-}
+import { CreateTransactionDto } from './create-transaction.dto';
+
+export class UpdateTransactionDto extends CreateTransactionDto {}

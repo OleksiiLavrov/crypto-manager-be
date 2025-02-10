@@ -1,8 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { CoinToUser } from 'src/coins/entity/coin-to-user.entity';
 
-import { Coin } from 'src/coins/entity/coin.entity';
-
-@Entity()
+@Entity('transaction')
 export class Transaction {
   @PrimaryGeneratedColumn()
   id: number;
@@ -10,14 +9,17 @@ export class Transaction {
   @Column()
   coinId: number;
 
-  @Column('float8')
-  coinAmount: number;
+  @Column({ nullable: true })
+  userId: number;
+
+  @Column({ nullable: true })
+  coinToUserId: number;
 
   @Column('float8')
-  totalCost: number;
+  amount: number;
 
-  @Column()
-  coinName: string;
+  @Column('float8')
+  cost: number;
 
   @Column({ default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
@@ -25,6 +27,6 @@ export class Transaction {
   @Column({ default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @ManyToOne(() => Coin, (coin) => coin.transactions)
-  coin: Coin;
+  @ManyToOne(() => CoinToUser, (coinToUser) => coinToUser.transactions)
+  coinToUser: CoinToUser;
 }
