@@ -15,10 +15,10 @@ export class CoinToUser {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: true })
+  @Column({ unique: false })
   userId: number;
 
-  @Column()
+  @Column({ unique: false })
   coinId: number;
 
   @Column('float8')

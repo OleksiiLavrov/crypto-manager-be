@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { CoinsService } from './coins.service';
 
 @Controller('coins')
@@ -6,7 +6,7 @@ export class CoinsController {
   constructor(private readonly coinsService: CoinsService) {}
 
   @Get()
-  findAll(@Param('userId') userId: string) {
+  findAll(@Query('userId') userId: string) {
     return this.coinsService.findAllUserCoins(+userId);
   }
 

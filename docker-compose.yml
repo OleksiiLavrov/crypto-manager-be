@@ -8,27 +8,27 @@ services:
       - "3000:3000"
     environment:
       - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
+      - POSTGRES_PORT=5555
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DATABASE=crypto_manager
+      - POSTGRES_DATABASE=crypto_manager_dev
     depends_on:
       - postgres
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
-    entrypoint: ["sh", "-c", "until pg_isready -h postgres -p 5432 -U postgres; do echo Waiting for Postgres...; sleep 2; done; yarn migration:up && yarn start:prod"]
+    entrypoint: ["sh", "-c", "until pg_isready -h postgres -p 5555 -U postgres; do echo Waiting for Postgres...; sleep 2; done; yarn migration:up && yarn start:prod"]
 
   postgres:
     image: postgres:15
     container_name: postgres
-    command: -p 5432
+    command: -p 5555
     ports:
-      - "5432:5432"
+      - "5555:5555"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=crypto_manager
+      - POSTGRES_DB=crypto_manager_dev
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

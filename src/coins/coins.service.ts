@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CoinToUserDto, UserCoinWithQuotesDto } from './dto/coin-to-user.dto';
@@ -11,9 +15,9 @@ import { CoinToUser } from './entity/coin-to-user.entity';
 import { Coin } from './entity/coin.entity';
 import { QuotesProcessor } from './processors/quotes.processor';
 
-
 @Injectable()
 export class CoinsService {
+  private readonly logger = new Logger(CoinsService.name);
   constructor(
     @InjectRepository(Coin)
     private readonly coinsRepository: Repository<Coin>,
@@ -91,7 +95,7 @@ export class CoinsService {
     try {
       const userCoins = await this.coinToUserRepository.find({
         where: { userId },
-        relations: ['coin'],
+        relations: ['transactions', 'coin'],
       });
       const userCoinsWithQuotes = await this.fillUserCoinsWithQuotes(userCoins);
       return userCoinsWithQuotes;
@@ -169,11 +173,11 @@ export class CoinsService {
       const { amount, invested } = userCoin;
       const totalValue = amount * coin.price;
       const pnl = ((totalValue - invested) / Math.abs(invested)) * 100;
-      const avg = invested / amount;
+      const avg = invested && amount ? invested / amount : 0;
 
       return {
-        ...coin,
         ...userCoin,
+        coin: { ...userCoin.coin, ...coin },
         pnl,
         avg,
         totalValue,
@@ -183,9 +187,16 @@ export class CoinsService {
 
   private async fillCoinDataWithQuotes(coins: CoinDto[]): Promise<CoinDto[]> {
     const coinQuotes = await this.quotesProcessor.getSelectedQuotes(coins);
-    return coins.map((coin) => ({
-      ...coinQuotes.find((c) => c.name === coin.name),
-      ...coin,
-    }));
+    return coinQuotes;
   }
+
+  // private async updateCoinsWithActualQuotes(
+  //   coins: CoinDto[],
+  // ): Promise<CoinDto[]> {
+  //   const coinQuotes = await this.quotesProcessor.getSelectedQuotes(coins);
+  //   return coins.map((coin) => ({
+  //     ...coinQuotes.find((c) => c.name === coin.name),
+  //     ...coin,
+  //   }));
+  // }
 }

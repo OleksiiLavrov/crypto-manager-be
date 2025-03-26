@@ -9,10 +9,10 @@ export class Transaction {
   @Column()
   coinId: number;
 
-  @Column({ nullable: true })
+  @Column()
   userId: number;
 
-  @Column({ nullable: true })
+  @Column()
   coinToUserId: number;
 
   @Column('float8')
