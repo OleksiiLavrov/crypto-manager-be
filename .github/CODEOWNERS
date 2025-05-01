@@ -1,0 +1,24 @@
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence,
+# @OleksiiLavrov will be requested for review when someone 
+# opens a pull request.
+*       @OleksiiLavrov
+
+# Specific ownership for src directory
+/src/   @OleksiiLavrov
+
+# Backend specific files
+*.ts    @OleksiiLavrov
+*.js    @OleksiiLavrov
+
+# Configuration files
+*.json  @OleksiiLavrov
+*.yml   @OleksiiLavrov
+*.yaml  @OleksiiLavrov
+
+# Docker related files
+Dockerfile      @OleksiiLavrov
+docker-compose.yml  @OleksiiLavrov
+
+# Database migrations
+/database-migrations/    @OleksiiLavrov
