@@ -9,7 +9,7 @@
     "./dto/(.*)$",
     "^[./]"
   ],
-  "importOrderSeparation": true,
+  "importOrderSeparation": false,
   "importOrderSortSpecifiers": true,
   "importOrderParserPlugins": [
     "typescript",

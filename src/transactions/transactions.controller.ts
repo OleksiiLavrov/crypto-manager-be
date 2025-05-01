@@ -1,17 +1,9 @@
-import {
-  Body,
-  Controller, // FileTypeValidator,
-  // Get,
-  Param, // ParseFilePipe,
-  Post,
-  Put, // UploadedFile,
-  // UseInterceptors,
-} from '@nestjs/common';
-
-// import { FileInterceptor } from '@nestjs/platform-express';
+import { Body, Controller, Param, Post, Put, Req } from '@nestjs/common';
+import { Roles } from 'src/decorators/roles.decorator';
+import { UserRole } from 'src/users/enum/user-role.enum';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { TransactionDto } from './dto/transaction.dto';
-
+import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionsService } from './transactions.service';
 
 @Controller('transactions')
@@ -21,8 +13,10 @@ export class TransactionsController {
   @Post()
   create(
     @Body() createTransactionDto: CreateTransactionDto,
+    @Req() req,
   ): Promise<TransactionDto> {
-    return this.transactionsService.create(createTransactionDto);
+    const user = req.user;
+    return this.transactionsService.create(createTransactionDto, user.id);
   }
 
   // @Post('/upload')
@@ -43,11 +37,14 @@ export class TransactionsController {
   //   return this.transactionsService.parse(file);
   // }
 
+  @Roles(UserRole.ADMIN)
   @Put(':id')
   update(
     @Param('id') id: string,
-    @Body() updateTransactionDto: TransactionDto,
+    @Req() req,
+    @Body() updateTransactionDto: UpdateTransactionDto,
   ): Promise<TransactionDto> {
-    return this.transactionsService.update(+id, updateTransactionDto);
+    const user = req.user;
+    return this.transactionsService.update(+id, user.id, updateTransactionDto);
   }
 }

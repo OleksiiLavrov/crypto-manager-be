@@ -5,12 +5,15 @@ import { APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
+import { AuthModule } from './auth/auth.module';
+import { BinanceModule } from './binance/binance.module';
 import { CoinsModule } from './coins/coins.module';
 import { dataSourceOptions } from './config/data-source';
 import { FilesModule } from './files/files.module';
-import { ParserModule } from './parser/parser.module';
+import { AuthGuard } from './guards/auth.guard';
+import { RolesGuard } from './guards/roles.guard';
 import { TransactionsModule } from './transactions/transactions.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -32,13 +35,23 @@ import { TransactionsModule } from './transactions/transactions.module';
     TransactionsModule,
     CoinsModule,
     FilesModule,
-    ParserModule,
+    UsersModule,
+    AuthModule,
+    BinanceModule,
   ],
   controllers: [],
   providers: [
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })
