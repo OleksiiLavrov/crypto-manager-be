@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-
 import { FileCreatedEvent } from '../events/file-created.event';
 import { FilesService } from '../files.service';
 

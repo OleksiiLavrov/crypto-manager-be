@@ -1,9 +1,16 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CoinsService } from 'src/coins/coins.service';
 import { UpdateCoinToUserDto } from 'src/coins/dto/update-coin-to-user.dto';
-import { CreateTransactionDto } from './dto/create-transaction.dto';
+import {
+  CreateTransactionDto,
+  ExtendedCreateTransactionDto,
+} from './dto/create-transaction.dto';
 import { TransactionDto } from './dto/transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Transaction } from './entity/transaction.entity';
@@ -20,6 +27,10 @@ export class TransactionsService {
     createTransactionDto: CreateTransactionDto,
     userId: number,
   ): Promise<TransactionDto> {
+    if (!createTransactionDto) {
+      throw new BadRequestException('Transaction data is required');
+    }
+
     let coin = await this.coinsService.findCoinByName(
       createTransactionDto.coinName,
     );
@@ -47,25 +58,28 @@ export class TransactionsService {
         userCoin = await this.coinsService.createUserCoin({
           coinId: coin.id,
           userId,
-          amount: createTransactionDto.coinAmount,
-          invested: createTransactionDto.totalCost,
+          amount: createTransactionDto.amount,
+          invested: createTransactionDto.cost,
         });
       } else {
         const updatedUserCoinDto: UpdateCoinToUserDto = {
           id: userCoin.id,
           coinId: coin.id,
           userId,
-          amount: userCoin.amount + createTransactionDto.coinAmount,
-          invested: userCoin.invested + createTransactionDto.totalCost,
+          amount: userCoin.amount + createTransactionDto.amount,
+          invested: userCoin.invested + createTransactionDto.cost,
         };
 
         await this.coinsService.updateUserCoin(updatedUserCoinDto);
       }
 
-      const transaction = await this.createTransaction(
-        coin.id,
-        createTransactionDto,
-      );
+      const transaction = await this.createTransaction({
+        coinId: coin.id,
+        amount: createTransactionDto.amount,
+        cost: createTransactionDto.cost,
+        userId,
+        coinToUserId: userCoin.id,
+      });
 
       await queryRunner.commitTransaction();
       return transaction;
@@ -101,11 +115,9 @@ export class TransactionsService {
         ...userCoin,
         userId,
         amount:
-          userCoin.amount -
-          transaction.amount +
-          updateTransactionDto.coinAmount,
+          userCoin.amount - transaction.amount + updateTransactionDto.amount,
         invested:
-          userCoin.invested - transaction.cost + updateTransactionDto.totalCost,
+          userCoin.invested - transaction.cost + updateTransactionDto.cost,
       };
 
       await this.coinsService.updateUserCoin(updatedUserCoinDto);
@@ -126,14 +138,11 @@ export class TransactionsService {
   }
 
   private async createTransaction(
-    coinId: number,
-    createTransactionDto: CreateTransactionDto,
+    createTransactionDto: ExtendedCreateTransactionDto,
   ) {
     try {
-      const transaction = this.transactionsRepository.create({
-        coinId: coinId,
-        ...createTransactionDto,
-      });
+      const transaction =
+        this.transactionsRepository.create(createTransactionDto);
       return await this.transactionsRepository.save(transaction);
     } catch (error) {
       throw new InternalServerErrorException({
@@ -167,10 +176,10 @@ export class TransactionsService {
     updateTransactionDto: UpdateTransactionDto,
     transaction: Transaction,
   ) {
-    const { coinAmount, totalCost } = updateTransactionDto;
+    const { amount, cost } = updateTransactionDto;
     try {
-      transaction.amount = coinAmount;
-      transaction.cost = totalCost;
+      transaction.amount = amount;
+      transaction.cost = cost;
       return await this.transactionsRepository.save(transaction);
     } catch (error) {
       throw new InternalServerErrorException({

@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { CoinToUser } from 'src/coins/entity/coin-to-user.entity';
+import { UserRole } from '../enum/user-role.enum';
 
 @Entity('user')
 export class User {
@@ -8,6 +9,9 @@ export class User {
 
   @Column()
   name: string;
+
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
+  role: UserRole;
 
   @Column()
   email: string;

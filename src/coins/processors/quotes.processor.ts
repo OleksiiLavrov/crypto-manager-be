@@ -1,11 +1,26 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { catchError, lastValueFrom, map } from 'rxjs';
 import { CoinDto } from '../dto/coin.dto';
+import { ConfigEnum } from '../../constants';
 
 @Injectable()
 export class QuotesProcessor {
-  constructor(private readonly httpService: HttpService) {}
+  private readonly marketQuotesApiKey: string;
+  private readonly marketQuotesUri: string;
+
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {
+    this.marketQuotesApiKey = this.configService.get<string>(
+      ConfigEnum.MARKET_QUOTES_API_KEY,
+    );
+    this.marketQuotesUri = this.configService.get<string>(
+      ConfigEnum.MARKET_QUOTES_URI,
+    );
+  }
 
   public async getSelectedQuotes(coins: CoinDto[]): Promise<CoinDto[]> {
     const coinSlugs = coins.map((c) => c.name);
@@ -26,10 +41,10 @@ export class QuotesProcessor {
       const coinsQuotes = await lastValueFrom(
         this.httpService
           .get(
-            `${process.env.MARKET_QUOTES_URI}/v1/cryptocurrency/quotes/latest?symbol=${coinSlugs.join()}`,
+            `${this.marketQuotesUri}/v1/cryptocurrency/quotes/latest?symbol=${coinSlugs.join()}`,
             {
               headers: {
-                'X-CMC_PRO_API_KEY': process.env.MARKET_QUOTES_API_KEY,
+                'X-CMC_PRO_API_KEY': this.marketQuotesApiKey,
               },
             },
           )

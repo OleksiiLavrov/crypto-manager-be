@@ -1,26 +1,29 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Req } from '@nestjs/common';
+import { Roles } from 'src/decorators/roles.decorator';
+import { UserRole } from 'src/users/enum/user-role.enum';
 import { CoinsService } from './coins.service';
 
 @Controller('coins')
 export class CoinsController {
   constructor(private readonly coinsService: CoinsService) {}
 
+  @Roles(UserRole.USER)
   @Get()
-  findAll(@Query('userId') userId: string) {
-    return this.coinsService.findAllUserCoins(+userId);
+  findAll(@Req() req) {
+    const user = req.user;
+    return this.coinsService.findAllUserCoins(user.id);
   }
 
-  @Get(':name/:userId')
-  findOneByName(@Param('name') name: string, @Param('userId') userId: string) {
-    return this.coinsService.findUserCoinByName(name, +userId);
+  @Get('/:name')
+  findOneByName(@Param('name') name: string, @Req() req) {
+    const user = req.user;
+    return this.coinsService.findUserCoinByName(name, user.id);
   }
 
-  @Get('/:name/transactions/:userId')
-  findOneByNameWithTransactions(
-    @Param('name') name: string,
-    @Param('userId') userId: string,
-  ) {
-    return this.coinsService.findUserCoinByName(name, +userId, {
+  @Get('/:name/transactions')
+  findOneByNameWithTransactions(@Param('name') name: string, @Req() req) {
+    const user = req.user;
+    return this.coinsService.findUserCoinByName(name, user.id, {
       withTransactions: true,
     });
   }

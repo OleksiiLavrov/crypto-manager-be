@@ -97,6 +97,11 @@ export class CoinsService {
         where: { userId },
         relations: ['transactions', 'coin'],
       });
+
+      if (!userCoins.length) {
+        return [];
+      }
+
       const userCoinsWithQuotes = await this.fillUserCoinsWithQuotes(userCoins);
       return userCoinsWithQuotes;
     } catch (error) {

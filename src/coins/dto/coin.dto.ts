@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-
 export class CoinDto {
   @ApiProperty({ example: 1, description: 'Coin id' })
   public id: number;
