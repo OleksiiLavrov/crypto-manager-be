@@ -15,7 +15,7 @@
     "migration:down": "yarn build && npx typeorm-ts-node-commonjs migration:revert -d src/config/data-source.ts",
     "migration:generate": "yarn build && npx typeorm-ts-node-commonjs -d src/config/data-source.ts migration:generate",
     "migration:up": "yarn build && npx typeorm-ts-node-commonjs migration:run -d src/config/data-source.ts",
-    "precommit": "lint-staged && yarn lint",
+    "precommit": "lint-staged && yarn lint && yarn test",
     "prepush": "yarn test",
     "prettier:check": "prettier --check ./**/*.{ts,js,json,*rc}",
     "prettier:write": "prettier --write ./**/*.{ts,js,json,*rc}",
