@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { CoinToUser } from 'src/coins/entity/coin-to-user.entity';
+import { CoinToUser } from '../../coins/entity/coin-to-user.entity';
 import { UserRole } from '../enum/user-role.enum';
 
 @Entity('user')

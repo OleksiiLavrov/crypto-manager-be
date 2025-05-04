@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { CoinToUser } from 'src/coins/entity/coin-to-user.entity';
+import { CoinToUser } from '../../coins/entity/coin-to-user.entity';
 
 @Entity('transaction')
 export class Transaction {

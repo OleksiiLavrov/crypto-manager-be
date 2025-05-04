@@ -6,8 +6,8 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Transaction } from 'src/transactions/entity/transaction.entity';
-import { User } from 'src/users/entities/user.entity';
+import { Transaction } from '../../transactions/entity/transaction.entity';
+import { User } from '../../users/entities/user.entity';
 import { Coin } from './coin.entity';
 
 @Entity('coin_to_user')
