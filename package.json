@@ -7,15 +7,15 @@
   "author": "",
   "scripts": {
     "build": "nest build",
-    "eslint:check": "eslint \"{src,apps,libs,test}/**/*.ts\"",
+    "eslint:check": "eslint \"src/**/*.ts\"",
     "eslint:fix": "yarn eslint:check --fix",
-    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\"",
     "lint": "yarn eslint:check && yarn prettier:check",
     "migration:create": "yarn build && npx typeorm-ts-node-commonjs migration:create ",
     "migration:down": "yarn build && npx typeorm-ts-node-commonjs migration:revert -d src/config/data-source.ts",
     "migration:generate": "yarn build && npx typeorm-ts-node-commonjs -d src/config/data-source.ts migration:generate",
     "migration:up": "yarn build && npx typeorm-ts-node-commonjs migration:run -d src/config/data-source.ts",
-    "precommit": "lint-staged && yarn lint",
+    "precommit": "lint-staged && yarn lint && yarn test",
     "prepush": "yarn test",
     "prettier:check": "prettier --check ./**/*.{ts,js,json,*rc}",
     "prettier:write": "prettier --write ./**/*.{ts,js,json,*rc}",
@@ -26,7 +26,6 @@
     "test": "jest",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./apps/crypto-manager-be/test/jest-e2e.json",
     "test:watch": "jest --watch",
     "typeorm": "typeorm-ts-node-commonjs"
   },
@@ -42,7 +41,7 @@
     ],
     "rootDir": ".",
     "roots": [
-      "<rootDir>/apps/"
+      "<rootDir>/"
     ],
     "testEnvironment": "node",
     "testRegex": ".*\\.spec\\.ts$",

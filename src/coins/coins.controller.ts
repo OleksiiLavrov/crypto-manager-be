@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Req } from '@nestjs/common';
-import { Roles } from 'src/decorators/roles.decorator';
-import { UserRole } from 'src/users/enum/user-role.enum';
+import { Roles } from './../decorators/roles.decorator';
+import { UserRole } from './../users/enum/user-role.enum';
 import { CoinsService } from './coins.service';
 
 @Controller('coins')
