@@ -53,4 +53,3 @@
 
 ## Related Issues
 <!-- Link to any related issues here using #issue-number -->
-Closes #
