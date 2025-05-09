@@ -17,11 +17,14 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       const user = this.userRepository.create(createUserDto);
+      const savedUser = await this.userRepository.save(user);
+
       this.logger.log({
         event: 'Successfully created user',
         createUserDto,
       });
-      return this.userRepository.save(user);
+
+      return savedUser;
     } catch (error) {
       this.logger.error({
         event: 'Error while creating user',

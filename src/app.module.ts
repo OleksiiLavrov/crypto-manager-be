@@ -12,6 +12,7 @@ import { dataSourceOptions } from './config/data-source';
 import { FilesModule } from './files/files.module';
 import { AuthGuard } from './guards/auth.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { HealthModule } from './health/health.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { UsersModule } from './users/users.module';
 
@@ -38,6 +39,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     AuthModule,
     BinanceModule,
+    HealthModule,
   ],
   controllers: [],
   providers: [

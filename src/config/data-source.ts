@@ -16,6 +16,9 @@ export const dataSourceOptions: DataSourceOptions = {
   entities: ['dist/**/*.entity.js'],
   migrations: ['dist/database-migrations/*.js'],
   migrationsTableName: 'migrations_changelog',
+  ssl: {
+    rejectUnauthorized: false,
+  },
 };
 
 const dataSource = new DataSource(dataSourceOptions);
